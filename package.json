@@ -12,16 +12,20 @@
   "dependencies": {
     "@farcaster/miniapp-core": "^0.3.6",
     "@farcaster/miniapp-node": "^0.1.6",
-    "@farcaster/miniapp-sdk": "^0.1.7",
-    "@farcaster/miniapp-wagmi-connector": "^1.0.0",
-    "@tanstack/react-query": "^5.64.2",
+    "@farcaster/miniapp-sdk": "^0.2.1",
+    "@farcaster/miniapp-wagmi-connector": "^1.1.0",
+    "@reown/appkit": "^1.8.14",
+    "@reown/appkit-adapter-wagmi": "^1.8.14",
+    "@tanstack/react-query": "^5.80.5",
     "@upstash/redis": "^1.35.1",
     "@vercel/og": "^0.7.2",
+    "@wagmi/connectors": "^6.2.0",
+    "@wagmi/core": "^2.22.1",
     "next": "14.2.6",
     "react": "^18",
     "react-dom": "^18",
-    "viem": "^2.22.22",
-    "wagmi": "^2.14.12",
+    "viem": "^2.40.3",
+    "wagmi": "^2.19.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -40,6 +44,9 @@
     ],
     "onlyBuiltDependencies": [
       "@biomejs/biome"
-    ]
+    ],
+    "overrides": {
+      "@wagmi/connectors": "^6.2.0"
+    }
   }
 }

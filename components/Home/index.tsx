@@ -11,15 +11,16 @@ export function Demo() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 space-y-8">
       <h1 className="text-3xl font-bold text-center">
-        Monad Farcaster MiniApp Template
+       Quizmania
       </h1>
       <div className="w-full max-w-4xl space-y-6">
         <User />
-        <FarcasterActions />
-        <NotificationActions />
+        {/* <FarcasterActions /> */}
+        {/* <NotificationActions /> */}
         <WalletActions />
-        <CustomOGImageAction />
-        <Haptics />
+        {/* feed share action */}
+        {/* <CustomOGImageAction /> */}
+        {/* <Haptics /> */}
       </div>
     </div>
   )
