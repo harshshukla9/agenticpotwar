@@ -3,46 +3,55 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createAppKit } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import {  base } from '@reown/appkit/networks'
+import { arbitrum, base } from '@reown/appkit/networks'
 import { WagmiProvider } from 'wagmi'
+import { http } from 'viem'
 import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
 
-// Get Reown/WalletConnect Project ID from environment or use a default
-const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID || 'demo-project-id'
+// Pick up the project ID from either env var name
+const projectId =
+  process.env.NEXT_PUBLIC_REOWN_PROJECT_ID ||
+  process.env.NEXT_PUBLIC_PROJECT_ID ||
+  ''
 
-// Set up Wagmi Adapter with Farcaster connector
+// Set up Wagmi Adapter with Farcaster connector + public Arbitrum RPC fallback
 const wagmiAdapter = new WagmiAdapter({
-  networks: [base],
+  networks: [arbitrum, base],
   projectId,
   ssr: true,
+  transports: {
+    [arbitrum.id]: http('https://arb1.arbitrum.io/rpc'),
+    [base.id]: http('https://mainnet.base.org'),
+  },
   connectors: [
-    miniAppConnector(), // Add Farcaster Mini App connector
+    miniAppConnector(),
   ],
 })
 
 // Create AppKit instance
 createAppKit({
   adapters: [wagmiAdapter],
-  networks: [base],
+  networks: [arbitrum, base],
+  defaultNetwork: arbitrum,
   projectId,
   metadata: {
-    name: 'Dragon Tower',
-    description: 'Dragon tower climb the tower to the top',
-    url: 'https://dragon-tower-lyart.vercel.app/',
-    icons: ['https://dragon-tower-lyart.vercel.app/images/icon.png']
+    name: 'Pot War',
+    description: 'Competitive pot – last bidder wins. Make your first ARB.',
+    url: typeof window !== 'undefined' ? window.location.origin : '',
+    icons: ['/images/assets/potli1.png'],
   },
   features: {
-    analytics: false, // Disable analytics to prevent extra renders
-    email: false, // Disable email login
-    socials: false, // Disable social logins
-    onramp: false, // Disable on-ramp
+    analytics: false,
+    email: false,
+    socials: false,
+    onramp: false,
   },
-  themeMode: 'dark',
+  themeMode: 'light',
   themeVariables: {
-    '--w3m-accent': '#3b99fc',
-    '--w3m-border-radius-master': '16px',
+    '--w3m-accent': '#FFD93D',
+    '--w3m-border-radius-master': '12px',
   },
-  allWallets: 'SHOW', // Show all available wallets
+  allWallets: 'SHOW',
 })
 
 // Export the wagmi config
@@ -55,9 +64,9 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      refetchOnMount: false,
-      refetchOnReconnect: false,
-      staleTime: 5 * 60 * 1000,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      staleTime: 30 * 1000,
     },
   },
 })

@@ -1,5 +1,5 @@
 {
-  "name": "monad-farcaster-miniapp-template",
+  "name": "potwararbitrum",
   "license": "MIT",
   "version": "0.1.0",
   "private": true,
@@ -14,37 +14,49 @@
     "@farcaster/miniapp-node": "^0.1.6",
     "@farcaster/miniapp-sdk": "^0.2.1",
     "@farcaster/miniapp-wagmi-connector": "^1.1.0",
+    "@radix-ui/react-alert-dialog": "^1.1.15",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-progress": "^1.1.8",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@reown/appkit": "^1.8.14",
     "@reown/appkit-adapter-wagmi": "^1.8.14",
+    "@t3-oss/env-nextjs": "^0.12.0",
     "@tanstack/react-query": "^5.80.5",
     "@upstash/redis": "^1.35.1",
     "@vercel/og": "^0.7.2",
     "@wagmi/connectors": "^6.2.0",
     "@wagmi/core": "^2.22.1",
-    "next": "14.2.6",
-    "react": "^18",
-    "react-dom": "^18",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.554.0",
+    "next": "^15.2.3",
+    "next-auth": "5.0.0-beta.25",
+    "react": "^19.0.0",
+    "react-animated-numbers": "^1.1.1",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.4.0",
     "viem": "^2.40.3",
     "wagmi": "^2.19.5",
-    "zod": "^3.24.1"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.0.15",
+    "@types/node": "^20.14.10",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.23.0",
+    "eslint-config-next": "^15.2.3",
+    "postcss": "^8.5.3",
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "tailwindcss": "^4.0.15",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.27.0"
   },
   "packageManager": "pnpm@10.6.3+sha512.bb45e34d50a9a76e858a95837301bfb6bd6d35aea2c5d52094fa497a467c43f5c440103ce2511e9e0a2f89c3d6071baac3358fc68ac6fb75e2ceb3d2736065e6",
   "pnpm": {
-    "ignoredBuiltDependencies": [
-      "@biomejs/biome"
-    ],
-    "onlyBuiltDependencies": [
-      "@biomejs/biome"
-    ],
     "overrides": {
       "@wagmi/connectors": "^6.2.0"
     }
