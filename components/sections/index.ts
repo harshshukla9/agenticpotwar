@@ -1,3 +1,3 @@
 export { PoolsSection } from "./pools-section";
 export { ProfileSection } from "./profile-section";
-export { LeaderboardSection } from "./leaderboard-section";
+export { HistorySection } from "./history-section";

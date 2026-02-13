@@ -4,16 +4,17 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useParticipate } from "@/hooks/useCompetitivePot";
 import { ShareToFarcaster, useShareToFarcaster } from "@/components/share-to-farcaster";
+import { CoinDropAnimation } from "@/components/coin-drop-animation";
 
 interface PoolsSectionProps {
   address: string | null;
   poolData: {
     totalPool: string;
     round: number;
-    totalDeposits: number;
     timeRemainingSeconds: number;
     lastBidder: string;
     lastBidFormatted: string;
+    isActive: boolean;
   };
   minimumBidFormatted: string;
   isMinBidLoading: boolean;
@@ -48,6 +49,13 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
   const [countdown, setCountdown] = useState(poolData.timeRemainingSeconds);
   const [lastBidAmountForShare, setLastBidAmountForShare] = useState<string | null>(null);
 
+  // Default bid amount to minimum bid when it loads
+  useEffect(() => {
+    if (minimumBidFormatted && minimumBidFormatted !== "0" && !bidAmount) {
+      setBidAmount(minimumBidFormatted);
+    }
+  }, [minimumBidFormatted]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     setCountdown(poolData.timeRemainingSeconds);
   }, [poolData.timeRemainingSeconds]);
@@ -61,12 +69,13 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
   const { participate, isPending, isConfirming, isSuccess, error } = useParticipate(poolData.round);
   const { share: shareToFarcaster } = useShareToFarcaster();
   const hasAutoShared = useRef(false);
+  const [showCoinDrop, setShowCoinDrop] = useState(false);
 
   const time = useMemo(() => formatCountdown(countdown), [countdown]);
 
   const minBidNum = parseFloat(minimumBidFormatted || "0");
   const bidNum = parseFloat(bidAmount) || 0;
-  const canBid = address && poolData.round > 0 && bidNum >= minBidNum && !isPending && !isConfirming;
+  const canBid = address && poolData.round > 0 && poolData.isActive && bidNum >= minBidNum && !isPending && !isConfirming;
   const isBusy = isPending || isConfirming;
 
   const handleParticipate = () => {
@@ -74,74 +83,85 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
     const amount = bidAmount.trim();
     setLastBidAmountForShare(amount);
     participate(amount);
-    setBidAmount("");
+    setBidAmount(minimumBidFormatted);
   };
+
+  // Trigger coin animation when bid succeeds
+  useEffect(() => {
+    if (isSuccess) setShowCoinDrop(true);
+  }, [isSuccess]);
 
   const lastBidderShort = shortAddr(poolData.lastBidder);
 
   const poolShareData = {
     round: poolData.round,
     totalPool: poolData.totalPool,
-    participantCount: poolData.totalDeposits,
     timeRemainingFormatted: formatTimeForShare(countdown),
     minBid: minimumBidFormatted,
     lastBidderShort: lastBidderShort || undefined,
     lastBidFormatted: poolData.lastBidFormatted || undefined,
   };
 
-  // Auto-trigger share to Farcaster when bid is placed successfully (once per success)
+  // Auto-trigger share to Farcaster when bid is placed successfully (delayed so user sees animation first)
   useEffect(() => {
     if (!isSuccess || !lastBidAmountForShare || poolData.round <= 0 || hasAutoShared.current) return;
     hasAutoShared.current = true;
-    shareToFarcaster("bid_placed", {
+    const shareData = {
       round: poolData.round,
       totalPool: poolData.totalPool,
-      participantCount: poolData.totalDeposits,
       timeRemainingFormatted: formatTimeForShare(countdown),
       minBid: minimumBidFormatted,
       lastBidderShort: lastBidderShort || undefined,
       lastBidFormatted: poolData.lastBidFormatted || undefined,
       myBidAmount: lastBidAmountForShare,
-    });
-  }, [isSuccess, lastBidAmountForShare, poolData.round, poolData.totalPool, poolData.totalDeposits, poolData.lastBidFormatted, minimumBidFormatted, countdown, lastBidderShort, shareToFarcaster]);
+    };
+    const t = setTimeout(() => {
+      shareToFarcaster("bid_placed", shareData);
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [isSuccess, lastBidAmountForShare, poolData.round, poolData.totalPool, poolData.lastBidFormatted, minimumBidFormatted, countdown, lastBidderShort, shareToFarcaster]);
 
   useEffect(() => {
     if (!isSuccess) hasAutoShared.current = false;
   }, [isSuccess]);
 
+  const potEnded = poolData.round > 0 && countdown <= 0;
+
   return (
     <div className="relative flex min-h-0 w-full flex-1 flex-col items-center overflow-y-auto py-4">
       {/* Timer badge */}
-      <div className="absolute top-[-1px] right-1 z-10 sm:top-4 sm:right-4">
-        <div className="relative flex flex-col items-center rounded-lg border-2 border-[#2C1810] bg-gradient-to-br from-[#FFD93D] via-[#FFED4E] to-[#FFD93D] p-2 shadow-[3px_3px_0_0_rgba(44,24,16,1)] min-w-[100px] sm:min-w-[140px] sm:rounded-xl sm:border-[3px] sm:p-3 sm:shadow-[4px_4px_0_0_rgba(44,24,16,1)]">
-          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#FFD93D]/20 to-transparent pointer-events-none" />
-          <div className="text-center relative z-10">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <span className="text-sm">⏱️</span>
-              <p className="text-[10px] font-black text-[#2C1810] uppercase tracking-wider">Ends In</p>
-            </div>
-            <div className="flex items-baseline justify-center gap-0.5 sm:gap-1">
-              {[
-                { val: time.hours, label: "H" },
-                { val: time.minutes, label: "M" },
-                { val: time.seconds, label: "S" },
-              ].map((unit, i) => (
-                <div key={unit.label} className="flex items-baseline">
-                  {i > 0 && (
-                    <span className="text-base font-black text-[#2C1810] leading-none pb-1 mx-0.5 sm:text-xl md:text-2xl">:</span>
-                  )}
-                  <div className="flex flex-col items-center">
-                    <span className="text-base font-black text-[#2C1810] leading-none tabular-nums sm:text-xl md:text-2xl">
-                      {String(unit.val).padStart(2, "0")}
-                    </span>
-                    <span className="text-[7px] font-bold text-[#5D4E37] uppercase mt-0.5">{unit.label}</span>
+      {poolData.isActive && (
+        <div className="absolute top-[-1px] right-1 z-10 sm:top-4 sm:right-4">
+          <div className="relative flex flex-col items-center rounded-lg border-2 border-[#2C1810] bg-gradient-to-br from-[#FFD93D] via-[#FFED4E] to-[#FFD93D] p-2 shadow-[3px_3px_0_0_rgba(44,24,16,1)] min-w-[100px] sm:min-w-[140px] sm:rounded-xl sm:border-[3px] sm:p-3 sm:shadow-[4px_4px_0_0_rgba(44,24,16,1)]">
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#FFD93D]/20 to-transparent pointer-events-none" />
+            <div className="text-center relative z-10">
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <span className="text-sm">⏱️</span>
+                <p className="text-[10px] font-black text-[#2C1810] uppercase tracking-wider">Ends In</p>
+              </div>
+              <div className="flex items-baseline justify-center gap-0.5 sm:gap-1">
+                {[
+                  { val: time.hours, label: "H" },
+                  { val: time.minutes, label: "M" },
+                  { val: time.seconds, label: "S" },
+                ].map((unit, i) => (
+                  <div key={unit.label} className="flex items-baseline">
+                    {i > 0 && (
+                      <span className="text-base font-black text-[#2C1810] leading-none pb-1 mx-0.5 sm:text-xl md:text-2xl">:</span>
+                    )}
+                    <div className="flex flex-col items-center">
+                      <span className="text-base font-black text-[#2C1810] leading-none tabular-nums sm:text-xl md:text-2xl">
+                        {String(unit.val).padStart(2, "0")}
+                      </span>
+                      <span className="text-[7px] font-bold text-[#5D4E37] uppercase mt-0.5">{unit.label}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Title */}
       <div className="shrink-0 px-2 text-center">
@@ -163,19 +183,24 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
           <p className="mt-1 text-base font-bold text-[#FFD93D] drop-shadow-[1px_1px_0_rgba(44,24,16,0.6)] sm:mt-2 sm:text-lg md:text-xl">
             Total Pool
           </p>
-          <p className="mt-1 text-sm font-semibold text-[#5D4E37]">{poolData.totalDeposits} participant{poolData.totalDeposits !== 1 ? "s" : ""}</p>
         </div>
 
-        {lastBidderShort && (
-          <div className="mb-4 mx-auto max-w-xs rounded-lg border-2 border-[#FFD93D] bg-[#FFD93D] p-2 sm:rounded-xl sm:border-[3px] sm:p-3">
-            <p className="text-xs font-bold text-[#2C1810] sm:text-sm text-center">
-              🏆 Current Winner: {lastBidderShort}
-              <span className="ml-1">({poolData.lastBidFormatted} ETH)</span>
+        {potEnded && (
+          <div className="mb-4 mx-auto max-w-xs rounded-lg border-2 border-red-400 bg-red-50 p-3 sm:rounded-xl sm:border-[3px]">
+            <p className="text-sm font-bold text-red-700 text-center">
+              ⏰ This pot has ended!
+            </p>
+            <p className="text-xs text-red-600 text-center mt-1">
+              Check the History tab for results
             </p>
           </div>
         )}
 
         <div className="relative w-full max-w-[200px] sm:max-w-[280px] md:max-w-[360px]">
+          <CoinDropAnimation
+            trigger={showCoinDrop}
+            onComplete={() => setShowCoinDrop(false)}
+          />
           <Image
             src="/images/assets/Money Bag Animated.gif"
             alt="Money Bag"
@@ -186,9 +211,21 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
           />
         </div>
 
+        {/* Current Winner – above min bid block so it doesn’t block the coin animation */}
+        {lastBidderShort && (
+          <div className="mt-4 mx-auto w-full max-w-sm rounded-lg border-2 border-[#FFD93D] bg-[#FFD93D] p-2 sm:rounded-xl sm:border-[3px] sm:p-3">
+            <p className="text-xs font-bold text-[#2C1810] sm:text-sm text-center">
+              🏆 Current Winner: {lastBidderShort}
+            </p>
+            <p className="text-xs font-semibold text-[#2C1810]/90 text-center mt-0.5">
+              Recent bid: {poolData.lastBidFormatted} ETH
+            </p>
+          </div>
+        )}
+
         {/* Bid form */}
-        {poolData.round > 0 && countdown > 0 && (
-          <div className="mt-6 w-full max-w-sm rounded-xl border-2 border-[#2C1810] bg-[#fefcf4] p-4 shadow-[3px_3px_0_0_rgba(44,24,16,1)]">
+        {poolData.round > 0 && poolData.isActive && countdown > 0 && (
+          <div className="mt-4 w-full max-w-sm rounded-xl border-2 border-[#2C1810] bg-[#fefcf4] p-4 shadow-[3px_3px_0_0_rgba(44,24,16,1)]">
             <p className="text-center text-sm font-bold text-[#2C1810]">
               Min bid: {isMinBidLoading ? "…" : `${minimumBidFormatted} ETH`}
             </p>

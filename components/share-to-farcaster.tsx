@@ -3,21 +3,18 @@
 import { useState } from "react";
 import { useFrame } from "@/components/farcaster-provider";
 
-export type PotShareType = "pool" | "bid_placed" | "leading";
+export type PotShareType = "pool" | "bid_placed";
 
 export interface PotShareData {
   round: number;
   totalPool: string;
-  participantCount: number;
+  participantCount?: number;
   timeRemainingFormatted?: string;
   minBid?: string;
   lastBidderShort?: string;
   lastBidFormatted?: string;
   /** For bid_placed */
   myBidAmount?: string;
-  /** For leading */
-  myContribution?: string;
-  rank?: number;
 }
 
 function generatePotCastText(type: PotShareType, data: PotShareData): string {
@@ -29,7 +26,6 @@ function generatePotCastText(type: PotShareType, data: PotShareData): string {
 ${roundLine}
 
 🏆 Pool: ${data.totalPool} ETH
-👥 ${data.participantCount} participant${data.participantCount !== 1 ? "s" : ""}
 ${data.timeRemainingFormatted ? `⏱️ Ends in ${data.timeRemainingFormatted}` : ""}
 ${data.minBid ? `📈 Min bid: ${data.minBid} ETH` : ""}
 ${data.lastBidderShort && data.lastBidFormatted ? `Current leader: ${data.lastBidderShort} (${data.lastBidFormatted} ETH)` : ""}
@@ -45,22 +41,8 @@ ${roundLine}
 
 💵 My bid: ${data.myBidAmount ?? "—"} ETH
 💰 Pool total: ${data.totalPool} ETH
-👥 ${data.participantCount} in the pot
 
 Think you can outbid me? Last bidder takes 80%! 🔥
-
-#PotWar #Arbitrum #Farcaster`;
-
-    case "leading":
-      return `🏆 I'm #${data.rank ?? 1} on Pot War!
-
-${roundLine}
-
-📊 My contribution: ${data.myContribution ?? "—"} ETH
-💰 Pool: ${data.totalPool} ETH
-👥 ${data.participantCount} participants
-
-Top the leaderboard before time runs out! ⏱️
 
 #PotWar #Arbitrum #Farcaster`;
 

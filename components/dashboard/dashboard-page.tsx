@@ -3,38 +3,47 @@
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { PoolsSection } from "@/components/sections";
-import { LeaderboardSection } from "@/components/sections";
+import { HistorySection } from "@/components/sections";
 import { ProfileSection } from "@/components/sections";
 import { AppKitConnectButton, AppKitAccountButton } from "@reown/appkit/react";
 import { useState } from "react";
 import { GameRulesDialog } from "@/components/game-rules-dialog";
-import { useCurrentPotDetails, useLeaderboard } from "@/hooks/useCompetitivePot";
+import { useCurrentPotInfo, usePotHistory, usePendingWithdrawals } from "@/hooks/useCompetitivePot";
 import { useAccount } from "wagmi";
+import { useFarcasterAutoConnect, useFarcasterManualConnect } from "@/hooks/useFarcasterConnect";
+import { useFrame } from "@/components/farcaster-provider";
 
-export type TabId = "pools" | "leaderboard" | "profile";
+export type TabId = "pools" | "history" | "profile";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<TabId>("pools");
   const [copied, setCopied] = useState(false);
   const { address } = useAccount();
-  const { details, isLoading: potLoading } = useCurrentPotDetails();
+  const { isSDKLoaded } = useFrame();
+  const { details, isLoading: potLoading } = useCurrentPotInfo();
+
+  // Auto-connect Farcaster wallet when inside Farcaster MiniApp
+  useFarcasterAutoConnect();
+  const { connectFarcaster, hasFarcasterConnector, isPending: isConnecting } = useFarcasterManualConnect();
 
   const currentPotId = details?.potId ?? 0;
-  const { participantCount, leaderboard } = useLeaderboard(currentPotId);
+  const { history, isLoading: historyLoading } = usePotHistory(currentPotId);
+  const { formatted: pendingFormatted, amount: pendingAmount, refetch: refetchPending } = usePendingWithdrawals(address);
 
   const totalPoolFormatted = details?.totalFundsFormatted ?? "0";
   const timeRemainingSeconds = details?.timeRemainingSeconds ?? 0;
   const minimumBidFormatted = details?.minimumNextBidFormatted ?? "0";
   const lastBidder = details?.lastBidder ?? "";
   const lastBidFormatted = details?.lastBidAmountFormatted ?? "0";
+  const isActive = details?.isActive ?? false;
 
   const poolData = {
     totalPool: totalPoolFormatted,
     round: currentPotId,
-    totalDeposits: participantCount,
     timeRemainingSeconds,
     lastBidder,
     lastBidFormatted,
+    isActive,
   };
 
   const copyToClipboard = async (text: string) => {
@@ -53,8 +62,10 @@ export default function DashboardPage() {
         return (
           <ProfileSection
             address={address ?? null}
-            poolData={{ userDeposits: 0, userTotalDeposited: 0, totalPool: totalPoolFormatted }}
-            leaderboard={leaderboard}
+            poolData={{ totalPool: totalPoolFormatted }}
+            pendingWithdrawal={pendingFormatted}
+            pendingAmount={pendingAmount}
+            refetchPending={refetchPending}
             copied={copied}
             copyToClipboard={copyToClipboard}
           />
@@ -68,14 +79,12 @@ export default function DashboardPage() {
             isMinBidLoading={potLoading}
           />
         );
-      case "leaderboard":
+      case "history":
         return (
-          <LeaderboardSection
-            address={address ?? null}
-            leaderboard={leaderboard}
-            participantCount={participantCount}
-            round={currentPotId}
-            totalPoolFormatted={totalPoolFormatted}
+          <HistorySection
+            history={history}
+            isLoading={historyLoading}
+            currentPotId={currentPotId}
           />
         );
       default:
@@ -87,7 +96,7 @@ export default function DashboardPage() {
 
   const navItems: { id: TabId; icon: React.ReactNode; label: string; shortLabel: string }[] = [
     { id: "pools", icon: <Image src="/images/assets/lottyRuleta.png" alt="" width={24} height={24} className="shrink-0" />, label: "Pool", shortLabel: "Pool" },
-    { id: "leaderboard", icon: <span className="text-lg">🏆</span>, label: "Leaderboard", shortLabel: "Rank" },
+    { id: "history", icon: <span className="text-lg">🏆</span>, label: "History", shortLabel: "History" },
     { id: "profile", icon: <Image src="/images/assets/lottyGuy.png" alt="" width={24} height={24} className="shrink-0" />, label: "Profile", shortLabel: "You" },
   ];
 
@@ -102,18 +111,32 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <GameRulesDialog />
-          {address ? <AppKitAccountButton /> : <AppKitConnectButton />}
+          {address ? (
+            <AppKitAccountButton />
+          ) : isSDKLoaded ? (
+            /* Inside Farcaster: only use Farcaster connector to avoid "Failed to fetch" from Reown/WalletConnect */
+            <button
+              type="button"
+              disabled={isConnecting || !hasFarcasterConnector}
+              onClick={connectFarcaster}
+              className="min-h-[44px] touch-manipulation rounded-lg border-2 border-[#2C1810] bg-[#FFD93D] px-3 py-1.5 text-xs font-black text-[#2C1810] shadow-[2px_2px_0_0_rgba(44,24,16,1)] active:scale-95 transition-transform disabled:opacity-50 sm:text-sm"
+            >
+              {isConnecting ? "Connecting…" : "Connect Wallet"}
+            </button>
+          ) : (
+            <AppKitConnectButton />
+          )}
         </div>
       </header>
 
-      {/* Scrollable content - full width */}
+      {/* Scrollable content */}
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
         <Card className="min-h-full border-0 bg-transparent p-3 shadow-none md:p-4 lg:p-6">
           <div className="font-sans">{renderContent()}</div>
         </Card>
       </div>
 
-      {/* Bottom nav - Farcaster/mobile friendly, touch targets 48px+ */}
+      {/* Bottom nav */}
       <nav
         className="flex shrink-0 flex-row items-stretch justify-around gap-0 border-t-2 border-[#2C1810]/20 bg-[#fefcf4] pb-[env(safe-area-inset-bottom)] pt-2"
         role="tablist"

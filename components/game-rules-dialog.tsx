@@ -16,11 +16,15 @@ const RULES = [
   },
   {
     title: "Payouts",
-    body: "When a round ends: 80% goes to the last bidder (winner), 10% to the top contributor by total amount, 5% split among the first 10 participants, and the remainder rolls to the next pot.",
+    body: "When a round ends: 80% goes to the last bidder (winner), 5% is split among the first 10 early participants, 2% is a protocol fee, and the remainder rolls into the next pot's prize pool.",
+  },
+  {
+    title: "Claiming winnings",
+    body: "After a pot ends, winnings are stored on-chain. Go to the Profile tab and click 'Withdraw ETH' to claim your pending winnings to your wallet.",
   },
   {
     title: "Minimum bid",
-    body: "The first bid must be at least the round’s minimum (e.g. 0.01 ETH). Each new bid must be at least 5% higher than the previous bid.",
+    body: "The first bid must be at least the round's minimum (e.g. 0.0001 ETH). Each new bid must be at least 5% higher than the previous bid.",
   },
   {
     title: "Anti-sniping",
