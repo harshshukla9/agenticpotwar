@@ -14,7 +14,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Pot War | Make Your First ARB',
+  title: 'Pot War | Make Your First MON',
   description: 'The last depositor wins the entire pool. Strategy, timing, and a bit of luck!',
 }
 

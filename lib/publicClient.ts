@@ -1,11 +1,11 @@
 import { createPublicClient, http } from "viem";
-import { arbitrum } from "viem/chains";
+import { monad } from "@/lib/chains";
 
 /**
- * Standalone viem public client for Arbitrum One.
+ * Standalone viem public client for Monad Mainnet.
  * Used for contract reads – independent of the wallet adapter / Reown project ID.
  */
 export const publicClient = createPublicClient({
-  chain: arbitrum,
-  transport: http("https://arb1.arbitrum.io/rpc"),
+  chain: monad,
+  transport: http("https://rpc.monad.xyz"),
 });

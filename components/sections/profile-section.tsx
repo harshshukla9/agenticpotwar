@@ -80,7 +80,7 @@ export function ProfileSection({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <p className="text-xs font-bold uppercase text-[#2C1810]">Pending Winnings</p>
-              <p className="mt-3 text-2xl font-black text-[#2C1810]">{pendingWithdrawal} ETH</p>
+              <p className="mt-3 text-2xl font-black text-[#2C1810]">{pendingWithdrawal} MON</p>
               <p className="mt-1 text-xs font-semibold text-[#5D4E37]">
                 {hasPending ? "Available to claim" : "No pending winnings"}
               </p>
@@ -91,7 +91,7 @@ export function ProfileSection({
                   onClick={handleWithdraw}
                   className="mt-4 w-full max-w-[200px] rounded-lg border-2 border-[#2C1810] bg-[#2C1810] py-2.5 font-black text-[#FFD93D] shadow-[2px_2px_0_0_rgba(44,24,16,0.5)] disabled:opacity-50 active:scale-95 transition-transform"
                 >
-                  {isBusy ? "Confirming…" : isSuccess ? "Withdrawn!" : "Withdraw ETH"}
+                  {isBusy ? "Confirming…" : isSuccess ? "Withdrawn!" : "Withdraw MON"}
                 </button>
               )}
               {error && (
@@ -113,7 +113,7 @@ export function ProfileSection({
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs font-bold text-[#5D4E37] uppercase">Pool total</p>
-              <p className="mt-3 text-2xl font-black text-[#2C1810]">{poolData.totalPool} ETH</p>
+              <p className="mt-3 text-2xl font-black text-[#2C1810]">{poolData.totalPool} MON</p>
               <p className="mt-1 text-xs font-semibold text-[#5D4E37]">Current pot</p>
             </div>
             <div className="rounded-full border-3 border-[#2C1810] bg-[#FFD93D] p-2">

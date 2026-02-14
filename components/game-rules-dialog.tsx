@@ -12,7 +12,7 @@ import {
 const RULES = [
   {
     title: "How it works",
-    body: "Pot War is a competitive bid pot on Arbitrum. Each round has a countdown. You send ETH to participate; your bid must be at least the minimum (see below). The last bidder when time runs out wins 80% of the total pot.",
+    body: "Pot War is a competitive bid pot on Monad. Each round has a countdown. You send MON to participate; your bid must be at least the minimum (see below). The last bidder when time runs out wins 80% of the total pot.",
   },
   {
     title: "Payouts",
@@ -20,11 +20,11 @@ const RULES = [
   },
   {
     title: "Claiming winnings",
-    body: "After a pot ends, winnings are stored on-chain. Go to the Profile tab and click 'Withdraw ETH' to claim your pending winnings to your wallet.",
+    body: "After a pot ends, winnings are stored on-chain. Go to the Profile tab and click 'Withdraw MON' to claim your pending winnings to your wallet.",
   },
   {
     title: "Minimum bid",
-    body: "The first bid must be at least the round's minimum (e.g. 0.0001 ETH). Each new bid must be at least 5% higher than the previous bid.",
+    body: "The first bid must be at least the round's minimum (e.g. 0.0001 MON). Each new bid must be at least 5% higher than the previous bid.",
   },
   {
     title: "Anti-sniping",
@@ -32,7 +32,7 @@ const RULES = [
   },
   {
     title: "Chain & currency",
-    body: "Play on Arbitrum One. All amounts are in ETH (native token). Connect your wallet, switch to Arbitrum, and place your bid.",
+    body: "Play on Monad Mainnet. All amounts are in MON (native token). Connect your wallet, switch to Monad, and place your bid.",
   },
 ];
 

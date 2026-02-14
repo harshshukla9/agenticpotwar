@@ -9,7 +9,7 @@ const frame = {
     title: 'Bid on Pot War',
     action: {
       type: 'launch_frame',
-      name: 'Pot War | Make Your First ARB',
+      name: 'Pot War | Make Your First MON',
       url: APP_URL,
       splashImageUrl: `${APP_URL}/images/splash.png`,
       splashBackgroundColor: '#f7f7f7',
@@ -19,9 +19,9 @@ const frame = {
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Pot War | Make Your First ARB',
+    title: 'Pot War | Make Your First MON',
     openGraph: {
-      title: 'Pot War | Make Your First ARB',
+      title: 'Pot War | Make Your First MON',
       description: 'The last depositor wins the entire pool. Strategy, timing and a bit of luck!',
     },
     other: {

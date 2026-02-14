@@ -3,10 +3,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createAppKit } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { arbitrum, base } from '@reown/appkit/networks'
+import { monad } from '@/lib/chains'
 import { WagmiProvider } from 'wagmi'
 import { http } from 'viem'
-import { farcasterMiniApp as miniAppConnector } from '@farcaster/miniapp-wagmi-connector'
 
 // Pick up the project ID from either env var name
 const projectId =
@@ -14,29 +13,25 @@ const projectId =
   process.env.NEXT_PUBLIC_PROJECT_ID ||
   ''
 
-// Set up Wagmi Adapter with Farcaster connector + public Arbitrum RPC fallback
+// Set up Wagmi Adapter with standard connectors (injected, WalletConnect, etc.)
 const wagmiAdapter = new WagmiAdapter({
-  networks: [arbitrum, base],
+  networks: [monad],
   projectId,
   ssr: true,
   transports: {
-    [arbitrum.id]: http('https://arb1.arbitrum.io/rpc'),
-    [base.id]: http('https://mainnet.base.org'),
+    [monad.id]: http('https://rpc.monad.xyz'),
   },
-  connectors: [
-    miniAppConnector(),
-  ],
 })
 
-// Create AppKit instance
+// Create AppKit instance – agents and users connect with standard wallets
 createAppKit({
   adapters: [wagmiAdapter],
-  networks: [arbitrum, base],
-  defaultNetwork: arbitrum,
+  networks: [monad],
+  defaultNetwork: monad,
   projectId,
   metadata: {
     name: 'Pot War',
-    description: 'Competitive pot – last bidder wins. Make your first ARB.',
+    description: 'Competitive pot – last bidder wins. Make your first MON.',
     url: typeof window !== 'undefined' ? window.location.origin : '',
     icons: ['/images/assets/potli1.png'],
   },
@@ -54,10 +49,6 @@ createAppKit({
   allWallets: 'SHOW',
 })
 
-// Export the wagmi config
-// This includes:
-// - Farcaster Mini App connector (for in-app usage)
-// - All wallets supported by Reown AppKit (MetaMask, Coinbase, etc.)
 export const config = wagmiAdapter.wagmiConfig
 
 const queryClient = new QueryClient({

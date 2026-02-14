@@ -47,10 +47,10 @@ export function LandingPage() {
         </div>
         <h1 className="mb-4 text-3xl font-black leading-tight text-[#2C1810] drop-shadow-[2px_2px_0_rgba(0,0,0,0.15)] sm:mb-6 sm:text-4xl md:text-5xl lg:text-6xl">
           Make Your First{" "}
-          <span className="text-[#9333EA] drop-shadow-[2px_2px_0_rgba(44,24,16,0.25)]">ARB</span>
+          <span className="text-[#9333EA] drop-shadow-[2px_2px_0_rgba(44,24,16,0.25)]">MON</span>
         </h1>
         <p className="mb-6 max-w-md text-base font-bold leading-snug text-[#5D4E37] sm:mb-8 sm:text-lg md:text-xl">
-          The last bidder wins 80% of the pot. Bid in ARB on Arbitrum.
+          The last bidder wins 80% of the pot. Bid in MON on Monad.
         </p>
         <div className="flex w-full max-w-sm flex-col items-center gap-4">
           <button

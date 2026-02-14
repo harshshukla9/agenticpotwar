@@ -2,32 +2,24 @@
 
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
-import { PoolsSection } from "@/components/sections";
-import { HistorySection } from "@/components/sections";
-import { ProfileSection } from "@/components/sections";
+import { AgentSection, PoolsSection, HistorySection, ProfileSection } from "@/components/sections";
 import { AppKitConnectButton, AppKitAccountButton } from "@reown/appkit/react";
 import { useState } from "react";
 import { GameRulesDialog } from "@/components/game-rules-dialog";
 import { useCurrentPotInfo, usePotHistory, usePendingWithdrawals } from "@/hooks/useCompetitivePot";
+import { usePotActivity } from "@/hooks/usePotActivity";
 import { useAccount } from "wagmi";
-import { useFarcasterAutoConnect, useFarcasterManualConnect } from "@/hooks/useFarcasterConnect";
-import { useFrame } from "@/components/farcaster-provider";
-
-export type TabId = "pools" | "history" | "profile";
+export type TabId = "pools" | "history" | "profile" | "agent";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<TabId>("pools");
   const [copied, setCopied] = useState(false);
   const { address } = useAccount();
-  const { isSDKLoaded } = useFrame();
   const { details, isLoading: potLoading } = useCurrentPotInfo();
-
-  // Auto-connect Farcaster wallet when inside Farcaster MiniApp
-  useFarcasterAutoConnect();
-  const { connectFarcaster, hasFarcasterConnector, isPending: isConnecting } = useFarcasterManualConnect();
 
   const currentPotId = details?.potId ?? 0;
   const { history, isLoading: historyLoading } = usePotHistory(currentPotId);
+  const { activities, isLoading: isActivityLoading } = usePotActivity({ limit: 30 });
   const { formatted: pendingFormatted, amount: pendingAmount, refetch: refetchPending } = usePendingWithdrawals(address);
 
   const totalPoolFormatted = details?.totalFundsFormatted ?? "0";
@@ -79,11 +71,15 @@ export default function DashboardPage() {
             isMinBidLoading={potLoading}
           />
         );
+      case "agent":
+        return <AgentSection />;
       case "history":
         return (
           <HistorySection
             history={history}
+            activities={activities}
             isLoading={historyLoading}
+            isActivityLoading={isActivityLoading}
             currentPotId={currentPotId}
           />
         );
@@ -98,6 +94,7 @@ export default function DashboardPage() {
     { id: "pools", icon: <Image src="/images/assets/lottyRuleta.png" alt="" width={24} height={24} className="shrink-0" />, label: "Pool", shortLabel: "Pool" },
     { id: "history", icon: <span className="text-lg">🏆</span>, label: "History", shortLabel: "History" },
     { id: "profile", icon: <Image src="/images/assets/lottyGuy.png" alt="" width={24} height={24} className="shrink-0" />, label: "Profile", shortLabel: "You" },
+    { id: "agent", icon: <span className="text-lg">🤖</span>, label: "Agent", shortLabel: "Agent" },
   ];
 
   return (
@@ -106,23 +103,13 @@ export default function DashboardPage() {
         <div className="flex items-center gap-1.5 rounded-lg border-2 border-[#2C1810]/30 bg-[#FFD93D]/80 px-2.5 py-1.5">
           <span className="text-xs font-bold uppercase text-[#5D4E37]">Pool</span>
           <span className="text-sm font-black text-[#2C1810] sm:text-base">
-            {totalPoolFormatted} ETH
+            {totalPoolFormatted} MON
           </span>
         </div>
         <div className="flex items-center gap-2">
           <GameRulesDialog />
           {address ? (
             <AppKitAccountButton />
-          ) : isSDKLoaded ? (
-            /* Inside Farcaster: only use Farcaster connector to avoid "Failed to fetch" from Reown/WalletConnect */
-            <button
-              type="button"
-              disabled={isConnecting || !hasFarcasterConnector}
-              onClick={connectFarcaster}
-              className="min-h-[44px] touch-manipulation rounded-lg border-2 border-[#2C1810] bg-[#FFD93D] px-3 py-1.5 text-xs font-black text-[#2C1810] shadow-[2px_2px_0_0_rgba(44,24,16,1)] active:scale-95 transition-transform disabled:opacity-50 sm:text-sm"
-            >
-              {isConnecting ? "Connecting…" : "Connect Wallet"}
-            </button>
           ) : (
             <AppKitConnectButton />
           )}

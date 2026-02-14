@@ -1,7 +1,9 @@
-export const contractAddress = "0x13130BD4227462A78853b27b8EfD092C57E9F6a2";
+export const contractAddress =
+  process.env.NEXT_PUBLIC_POT_CONTRACT_ADDRESS ??
+  "0x299a501f523C2A9B5adb2cA0372F1eE39a268615";
 
-/** Arbitrum One – contract is deployed here; reads must use this chain */
-export const contractChainId = 42161;
+/** Monad Mainnet – contract is deployed here; reads must use this chain */
+export const contractChainId = 143;
 
 export const contractABI = [
   {

@@ -2,8 +2,8 @@
 
 import { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { parseEther } from "viem";
 import { useParticipate } from "@/hooks/useCompetitivePot";
-import { ShareToFarcaster, useShareToFarcaster } from "@/components/share-to-farcaster";
 import { CoinDropAnimation } from "@/components/coin-drop-animation";
 
 interface PoolsSectionProps {
@@ -34,20 +34,9 @@ function shortAddr(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
-function formatTimeForShare(seconds: number): string {
-  const s = Math.max(0, Math.floor(seconds));
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  if (h > 0) return `${h}h ${m}m`;
-  if (m > 0) return `${m}m ${sec}s`;
-  return `${sec}s`;
-}
-
 export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidLoading }: PoolsSectionProps) {
   const [bidAmount, setBidAmount] = useState("");
   const [countdown, setCountdown] = useState(poolData.timeRemainingSeconds);
-  const [lastBidAmountForShare, setLastBidAmountForShare] = useState<string | null>(null);
 
   // Default bid amount to minimum bid when it loads
   useEffect(() => {
@@ -66,10 +55,9 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
     return () => clearInterval(t);
   }, [countdown]);
 
-  const { participate, isPending, isConfirming, isSuccess, error } = useParticipate(poolData.round);
-  const { share: shareToFarcaster } = useShareToFarcaster();
-  const hasAutoShared = useRef(false);
+  const { participate, hash, isPending, isConfirming, isSuccess, error } = useParticipate(poolData.round);
   const [showCoinDrop, setShowCoinDrop] = useState(false);
+  const lastBidAmountRef = useRef<string>("");
 
   const time = useMemo(() => formatCountdown(countdown), [countdown]);
 
@@ -80,9 +68,8 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
 
   const handleParticipate = () => {
     if (!canBid || !bidAmount.trim()) return;
-    const amount = bidAmount.trim();
-    setLastBidAmountForShare(amount);
-    participate(amount);
+    lastBidAmountRef.current = bidAmount.trim();
+    participate(bidAmount.trim());
     setBidAmount(minimumBidFormatted);
   };
 
@@ -91,39 +78,26 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
     if (isSuccess) setShowCoinDrop(true);
   }, [isSuccess]);
 
+  // Record bid to MongoDB for live activity feed
+  useEffect(() => {
+    if (!isSuccess || !hash || !address) return;
+    const amount = lastBidAmountRef.current;
+    if (!amount) return;
+    const wei = parseEther(amount).toString();
+    fetch("/api/pot/activity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        round: poolData.round,
+        txHash: hash,
+        bidder: address,
+        amountWei: wei,
+        amountEth: amount,
+      }),
+    }).catch(() => {});
+  }, [isSuccess, hash, address, poolData.round]);
+
   const lastBidderShort = shortAddr(poolData.lastBidder);
-
-  const poolShareData = {
-    round: poolData.round,
-    totalPool: poolData.totalPool,
-    timeRemainingFormatted: formatTimeForShare(countdown),
-    minBid: minimumBidFormatted,
-    lastBidderShort: lastBidderShort || undefined,
-    lastBidFormatted: poolData.lastBidFormatted || undefined,
-  };
-
-  // Auto-trigger share to Farcaster when bid is placed successfully (delayed so user sees animation first)
-  useEffect(() => {
-    if (!isSuccess || !lastBidAmountForShare || poolData.round <= 0 || hasAutoShared.current) return;
-    hasAutoShared.current = true;
-    const shareData = {
-      round: poolData.round,
-      totalPool: poolData.totalPool,
-      timeRemainingFormatted: formatTimeForShare(countdown),
-      minBid: minimumBidFormatted,
-      lastBidderShort: lastBidderShort || undefined,
-      lastBidFormatted: poolData.lastBidFormatted || undefined,
-      myBidAmount: lastBidAmountForShare,
-    };
-    const t = setTimeout(() => {
-      shareToFarcaster("bid_placed", shareData);
-    }, 2500);
-    return () => clearTimeout(t);
-  }, [isSuccess, lastBidAmountForShare, poolData.round, poolData.totalPool, poolData.lastBidFormatted, minimumBidFormatted, countdown, lastBidderShort, shareToFarcaster]);
-
-  useEffect(() => {
-    if (!isSuccess) hasAutoShared.current = false;
-  }, [isSuccess]);
 
   const potEnded = poolData.round > 0 && countdown <= 0;
 
@@ -178,7 +152,7 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
         <div className="text-center mb-4 sm:mb-6">
           <div className="text-3xl font-black text-[#FFD93D] drop-shadow-[2px_2px_0_rgba(44,24,16,0.7)] flex items-baseline justify-center gap-1 sm:text-4xl md:text-5xl lg:text-6xl">
             <span>{poolData.totalPool}</span>
-            <span className="text-xl sm:text-2xl md:text-3xl">ETH</span>
+            <span className="text-xl sm:text-2xl md:text-3xl">MON</span>
           </div>
           <p className="mt-1 text-base font-bold text-[#FFD93D] drop-shadow-[1px_1px_0_rgba(44,24,16,0.6)] sm:mt-2 sm:text-lg md:text-xl">
             Total Pool
@@ -218,7 +192,7 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
               🏆 Current Winner: {lastBidderShort}
             </p>
             <p className="text-xs font-semibold text-[#2C1810]/90 text-center mt-0.5">
-              Recent bid: {poolData.lastBidFormatted} ETH
+              Recent bid: {poolData.lastBidFormatted} MON
             </p>
           </div>
         )}
@@ -227,7 +201,7 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
         {poolData.round > 0 && poolData.isActive && countdown > 0 && (
           <div className="mt-4 w-full max-w-sm rounded-xl border-2 border-[#2C1810] bg-[#fefcf4] p-4 shadow-[3px_3px_0_0_rgba(44,24,16,1)]">
             <p className="text-center text-sm font-bold text-[#2C1810]">
-              Min bid: {isMinBidLoading ? "…" : `${minimumBidFormatted} ETH`}
+              Min bid: {isMinBidLoading ? "…" : `${minimumBidFormatted} MON`}
             </p>
             {!address ? (
               <p className="mt-3 text-center text-sm text-[#5D4E37]">Connect wallet to participate</p>
@@ -237,7 +211,7 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
                   <input
                     type="text"
                     inputMode="decimal"
-                    placeholder="ETH amount"
+                    placeholder="MON amount"
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
                     className="w-full rounded-lg border-2 border-[#2C1810] bg-white px-3 py-2 text-center font-bold text-[#2C1810]"
@@ -250,13 +224,6 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
                   >
                     {isBusy ? "Confirm in wallet…" : isSuccess ? "Bid placed!" : "Place Bid"}
                   </button>
-                  <ShareToFarcaster
-                    type="pool"
-                    data={poolShareData}
-                    variant="button"
-                    size="md"
-                    className="w-full min-h-[44px] touch-manipulation mt-2"
-                  />
                 </div>
                 {error && (
                   <p className="mt-2 text-center text-xs text-red-600">{error.message || "Transaction failed"}</p>

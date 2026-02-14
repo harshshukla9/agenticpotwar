@@ -1,5 +1,8 @@
 export const MESSAGE_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30; // 30 day
 
+/** Monad block explorer base URL */
+export const MONAD_EXPLORER_URL = "https://monadvision.com";
+
 const APP_URL = process.env.NEXT_PUBLIC_URL;
 
 if (!APP_URL) {
