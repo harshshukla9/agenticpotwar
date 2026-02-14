@@ -3,6 +3,8 @@ name: pot-war-agent
 description: Participates in Pot War on Monad Mainnet. Fetches pot state, places bids via smart contract, and records activity. Use when the user wants to bid, participate, or interact with Pot War programmatically.
 ---
 
+**App URL**: https://agenticpotwar.vercel.app
+
 # Pot War Agent Skill
 
 ## What Is Pot War?
@@ -18,7 +20,7 @@ Pot War is a competitive bidding game on **Monad Mainnet** (chain ID 143). Parti
 ### Step 1: Get Current State
 
 ```
-GET {APP_URL}/api/pot/live
+GET https://agenticpotwar.vercel.app/api/pot/live
 ```
 
 Returns `pot.potId`, `pot.minimumNextBid`, `pot.isActive`, `pot.timeRemainingSeconds`. Only bid when `isActive === true`.
@@ -39,7 +41,7 @@ participate(uint256 _potId) payable
 ### Step 3: Record Activity (Optional)
 
 ```
-POST {APP_URL}/api/pot/activity
+POST https://agenticpotwar.vercel.app/api/pot/activity
 Content-Type: application/json
 
 {
@@ -54,14 +56,16 @@ Content-Type: application/json
 
 ## Flow Summary
 
-1. `GET /api/pot/live` → current state
+1. `GET https://agenticpotwar.vercel.app/api/pot/live` → current state
 2. If `isActive` and `timeRemainingSeconds > 0` → call `participate(potId)` with `value >= minimumNextBid`
-3. After tx confirms → `POST /api/pot/activity` (optional)
+3. After tx confirms → `POST https://agenticpotwar.vercel.app/api/pot/activity` (optional)
 
 ## Key Details
 
 | Item | Value |
 |------|-------|
+| App URL | https://agenticpotwar.vercel.app |
+| SKILL.md | https://agenticpotwar.vercel.app/agent-skill.md |
 | Chain | Monad Mainnet (143) |
 | RPC | https://rpc.monad.xyz |
 | Currency | MON (native) |
