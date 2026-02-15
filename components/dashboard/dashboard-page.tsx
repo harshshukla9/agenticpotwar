@@ -3,12 +3,13 @@
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { AgentSection, PoolsSection, HistorySection, ProfileSection } from "@/components/sections";
-import { AppKitConnectButton, AppKitAccountButton } from "@reown/appkit/react";
 import { useState } from "react";
 import { GameRulesDialog } from "@/components/game-rules-dialog";
 import { useCurrentPotInfo, usePotHistory, usePendingWithdrawals } from "@/hooks/useCompetitivePot";
 import { usePotActivity } from "@/hooks/usePotActivity";
 import { useAccount } from "wagmi";
+import { CustomWalletButton } from "@/components/custom-wallet-button";
+import { AnimatedMoney } from "@/components/animated-number";
 export type TabId = "pools" | "history" | "profile" | "agent";
 
 export default function DashboardPage() {
@@ -98,21 +99,23 @@ export default function DashboardPage() {
   ];
 
   return (
-    <main className="flex h-[100dvh] w-full flex-col overflow-hidden bg-[#fefcf4]">
+    <main className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-[#fefcf4]">
       <header className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-[#2C1810]/20 bg-[#fefcf4] px-3 py-2 safe-area-inset-top md:px-4 md:py-3">
-        <div className="flex items-center gap-1.5 rounded-lg border-2 border-[#2C1810]/30 bg-[#FFD93D]/80 px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5 rounded-lg border-2 border-[#2C1810]/30 bg-[#FFD93D]/80 px-3 py-2">
           <span className="text-xs font-bold uppercase text-[#5D4E37]">Pool</span>
-          <span className="text-sm font-black text-[#2C1810] sm:text-base">
-            {totalPoolFormatted} MON
+          <span className="text-lg font-black text-[#2C1810] sm:text-xl md:text-2xl">
+            <AnimatedMoney
+              value={totalPoolFormatted}
+              suffix=" MON"
+              fontSize={20}
+              color="#2C1810"
+              className="font-black"
+            />
           </span>
         </div>
         <div className="flex items-center gap-2">
           <GameRulesDialog />
-          {address ? (
-            <AppKitAccountButton />
-          ) : (
-            <AppKitConnectButton />
-          )}
+          <CustomWalletButton />
         </div>
       </header>
 
@@ -123,9 +126,9 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* Bottom nav */}
+      {/* Floating circular buttons on the right */}
       <nav
-        className="flex shrink-0 flex-row items-stretch justify-around gap-0 border-t-2 border-[#2C1810]/20 bg-[#fefcf4] pb-[env(safe-area-inset-bottom)] pt-2"
+        className="fixed right-4 top-1/2 z-50 flex -translate-y-1/2 flex-col gap-3"
         role="tablist"
       >
         {navItems.map((item) => (
@@ -136,16 +139,19 @@ export default function DashboardPage() {
             aria-selected={activeTab === item.id}
             aria-label={item.label}
             onClick={() => setActiveTab(item.id)}
-            className={`flex min-h-[48px] min-w-[44px] flex-1 touch-manipulation flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-2 text-center transition-colors active:scale-95 ${
+            className={`group relative flex h-14 w-14 touch-manipulation items-center justify-center rounded-full border-2 border-[#2C1810]/30 shadow-lg transition-all duration-200 active:scale-95 ${
               activeTab === item.id
-                ? "bg-[#FFD93D] text-[#2C1810] shadow-[0_-2px_0_0_rgba(44,24,16,0.3)]"
-                : "text-[#5D4E37]"
+                ? "bg-[#FFD93D] scale-110 shadow-[0_4px_12px_rgba(255,217,61,0.5)]"
+                : "bg-white/90 hover:bg-[#FFD93D]/60 hover:scale-105"
             }`}
           >
-            <span className="flex h-6 w-6 items-center justify-center [&>img]:h-5 [&>img]:w-5 sm:[&>img]:h-6 sm:[&>img]:w-6">
+            <span className="flex h-8 w-8 items-center justify-center [&>img]:h-6 [&>img]:w-6">
               {item.icon}
             </span>
-            <span className="text-[10px] font-bold leading-tight sm:text-xs">{item.shortLabel}</span>
+            {/* Tooltip on hover */}
+            <span className="absolute right-full mr-3 whitespace-nowrap rounded-lg bg-[#2C1810] px-3 py-1.5 text-xs font-bold text-white opacity-0 transition-opacity group-hover:opacity-100">
+              {item.label}
+            </span>
           </button>
         ))}
       </nav>

@@ -2,6 +2,7 @@
 
 import { Coins, Trophy, TrendingUp, Wallet } from "lucide-react";
 import { useWithdraw } from "@/hooks/useCompetitivePot";
+import { AnimatedMoney } from "@/components/animated-number";
 
 interface ProfileSectionProps {
   address: string | null;
@@ -79,9 +80,17 @@ export function ProfileSection({
         }`}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <p className="text-xs font-bold uppercase text-[#2C1810]">Pending Winnings</p>
-              <p className="mt-3 text-2xl font-black text-[#2C1810]">{pendingWithdrawal} MON</p>
-              <p className="mt-1 text-xs font-semibold text-[#5D4E37]">
+              <p className="text-sm font-bold uppercase text-[#2C1810]">Pending Winnings</p>
+              <p className="mt-3 text-4xl font-black text-[#2C1810] sm:text-5xl">
+                <AnimatedMoney
+                  value={pendingWithdrawal}
+                  suffix=" MON"
+                  fontSize={40}
+                  color="#2C1810"
+                  className="font-black"
+                />
+              </p>
+              <p className="mt-2 text-sm font-semibold text-[#5D4E37]">
                 {hasPending ? "Available to claim" : "No pending winnings"}
               </p>
               {hasPending && (
@@ -112,9 +121,17 @@ export function ProfileSection({
         <div className="rounded-2xl border-4 border-[#2C1810] bg-[#fefcf4] p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-bold text-[#5D4E37] uppercase">Pool total</p>
-              <p className="mt-3 text-2xl font-black text-[#2C1810]">{poolData.totalPool} MON</p>
-              <p className="mt-1 text-xs font-semibold text-[#5D4E37]">Current pot</p>
+              <p className="text-sm font-bold text-[#5D4E37] uppercase">Pool total</p>
+              <p className="mt-3 text-3xl font-black text-[#2C1810] sm:text-4xl">
+                <AnimatedMoney
+                  value={poolData.totalPool}
+                  suffix=" MON"
+                  fontSize={36}
+                  color="#2C1810"
+                  className="font-black"
+                />
+              </p>
+              <p className="mt-2 text-sm font-semibold text-[#5D4E37]">Current pot</p>
             </div>
             <div className="rounded-full border-3 border-[#2C1810] bg-[#FFD93D] p-2">
               <Coins className="h-6 w-6 text-[#2C1810]" strokeWidth={3} />

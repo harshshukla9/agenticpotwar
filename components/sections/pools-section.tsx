@@ -5,6 +5,7 @@ import Image from "next/image";
 import { parseEther } from "viem";
 import { useParticipate } from "@/hooks/useCompetitivePot";
 import { CoinDropAnimation } from "@/components/coin-drop-animation";
+import { AnimatedMoney } from "@/components/animated-number";
 
 interface PoolsSectionProps {
   address: string | null;
@@ -150,11 +151,16 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
       {/* Pool total + last bidder */}
       <div className="flex flex-1 flex-col items-center justify-center">
         <div className="text-center mb-4 sm:mb-6">
-          <div className="text-3xl font-black text-[#FFD93D] drop-shadow-[2px_2px_0_rgba(44,24,16,0.7)] flex items-baseline justify-center gap-1 sm:text-4xl md:text-5xl lg:text-6xl">
-            <span>{poolData.totalPool}</span>
-            <span className="text-xl sm:text-2xl md:text-3xl">MON</span>
+          <div className="text-5xl font-black text-[#FFD93D] drop-shadow-[2px_2px_0_rgba(44,24,16,0.7)] flex items-baseline justify-center gap-2 sm:text-6xl md:text-7xl lg:text-8xl">
+            <AnimatedMoney
+              value={poolData.totalPool}
+              suffix=" MON"
+              fontSize={80}
+              color="#FFD93D"
+              className="font-black drop-shadow-[2px_2px_0_rgba(44,24,16,0.7)]"
+            />
           </div>
-          <p className="mt-1 text-base font-bold text-[#FFD93D] drop-shadow-[1px_1px_0_rgba(44,24,16,0.6)] sm:mt-2 sm:text-lg md:text-xl">
+          <p className="mt-2 text-lg font-bold text-[#FFD93D] drop-shadow-[1px_1px_0_rgba(44,24,16,0.6)] sm:mt-3 sm:text-xl md:text-2xl">
             Total Pool
           </p>
         </div>
@@ -187,12 +193,19 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
 
         {/* Current Winner – above min bid block so it doesn’t block the coin animation */}
         {lastBidderShort && (
-          <div className="mt-4 mx-auto w-full max-w-sm rounded-lg border-2 border-[#FFD93D] bg-[#FFD93D] p-2 sm:rounded-xl sm:border-[3px] sm:p-3">
-            <p className="text-xs font-bold text-[#2C1810] sm:text-sm text-center">
+          <div className="mt-4 mx-auto w-full max-w-sm rounded-lg border-2 border-[#FFD93D] bg-[#FFD93D] p-3 sm:rounded-xl sm:border-[3px] sm:p-4">
+            <p className="text-sm font-bold text-[#2C1810] sm:text-base text-center">
               🏆 Current Winner: {lastBidderShort}
             </p>
-            <p className="text-xs font-semibold text-[#2C1810]/90 text-center mt-0.5">
-              Recent bid: {poolData.lastBidFormatted} MON
+            <p className="text-base font-bold text-[#2C1810]/90 text-center mt-1 flex items-center justify-center gap-1 sm:text-lg">
+              <span>Recent bid:</span>
+              <AnimatedMoney
+                value={poolData.lastBidFormatted}
+                suffix=" MON"
+                fontSize={18}
+                color="rgba(44, 24, 16, 0.9)"
+                className="font-bold"
+              />
             </p>
           </div>
         )}
@@ -200,8 +213,19 @@ export function PoolsSection({ address, poolData, minimumBidFormatted, isMinBidL
         {/* Bid form */}
         {poolData.round > 0 && poolData.isActive && countdown > 0 && (
           <div className="mt-4 w-full max-w-sm rounded-xl border-2 border-[#2C1810] bg-[#fefcf4] p-4 shadow-[3px_3px_0_0_rgba(44,24,16,1)]">
-            <p className="text-center text-sm font-bold text-[#2C1810]">
-              Min bid: {isMinBidLoading ? "…" : `${minimumBidFormatted} MON`}
+            <p className="text-center text-base font-bold text-[#2C1810] flex items-center justify-center gap-1 sm:text-lg">
+              <span>Min bid:</span>
+              {isMinBidLoading ? (
+                <span>…</span>
+              ) : (
+                <AnimatedMoney
+                  value={minimumBidFormatted}
+                  suffix=" MON"
+                  fontSize={18}
+                  color="#2C1810"
+                  className="font-bold"
+                />
+              )}
             </p>
             {!address ? (
               <p className="mt-3 text-center text-sm text-[#5D4E37]">Connect wallet to participate</p>
