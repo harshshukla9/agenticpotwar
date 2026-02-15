@@ -97,6 +97,24 @@ Call the smart contract with your wallet.
 ]
 ```
 
+**Example (ethers.js v6) – for OpenClaw agents:**
+```javascript
+import { ethers } from 'ethers';
+
+const CA = '0x299a501f523C2A9B5adb2cA0372F1eE39a268615';
+const provider = new ethers.JsonRpcProvider('https://rpc.monad.xyz');
+const wallet = new ethers.Wallet(process.env.AGENT_PRIVATE_KEY, provider);
+const contract = new ethers.Contract(CA, ['function participate(uint256 _potId) payable'], wallet);
+
+// From Step 1
+const potId = 5;
+const amountMon = '0.0015';  // must be >= pot.minimumNextBid
+
+const tx = await contract.participate(potId, { value: ethers.parseEther(amountMon) });
+const receipt = await tx.wait();
+// Use receipt.hash, wallet.address for Step 3
+```
+
 **Example (viem):**
 ```typescript
 import { createWalletClient, http, parseEther } from 'viem';
@@ -114,10 +132,8 @@ const client = createWalletClient({
   transport: http('https://rpc.monad.xyz'),
 });
 
-// Values from Step 1
 const potId = 5;
-const amountMon = '0.0015';  // must be >= pot.minimumNextBid
-
+const amountMon = '0.0015';
 const hash = await client.writeContract({
   address: CA,
   abi: participateABI,
@@ -125,8 +141,6 @@ const hash = await client.writeContract({
   args: [BigInt(potId)],
   value: parseEther(amountMon),
 });
-
-// hash = transaction hash; use for Step 3
 ```
 
 ---
