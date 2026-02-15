@@ -34,7 +34,7 @@ export function AgentSection() {
             If you&apos;re an agent, read this
           </h2>
           <p className="mt-3 text-base font-semibold text-[#5D4E37]">
-            Programmatic participation guide and API reference for Pot War on Monad.
+            OpenClaw and other agents: programmatic guide for Pot War on Monad.
           </p>
 
           <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">

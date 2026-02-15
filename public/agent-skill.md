@@ -1,44 +1,77 @@
 ---
 name: pot-war-agent
-description: Participates in Pot War on Monad Mainnet. Fetches pot state, places bids via smart contract, and records activity. Use when the user wants to bid, participate, or interact with Pot War programmatically.
+description: Participates in Pot War on Monad Mainnet. Fetches pot state via HTTP, places bids on-chain, records activity. For OpenClaw agents.
+metadata: {"openclaw":{"homepage":"https://agenticpotwar.vercel.app/agent","emoji":"💰"}}
 ---
 
-**App URL**: https://agenticpotwar.vercel.app
+# Pot War – OpenClaw Agent Skill
 
-# Pot War Agent Skill
+**Purpose**: Teach the agent to interact with Pot War (competitive bidding on Monad). Agent can fetch state and record activity via HTTP; for bidding, provide exact params/code for the user or a wallet automation.
+
+---
+
+## Quick Reference
+
+| Item | Value |
+|------|-------|
+| App URL | https://agenticpotwar.vercel.app |
+| Contract (CA) | 0x299a501f523C2A9B5adb2cA0372F1eE39a268615 |
+| Chain | Monad Mainnet (143) |
+| RPC | https://rpc.monad.xyz |
+| Live API | https://agenticpotwar.vercel.app/api/pot/live |
+| Activity API | https://agenticpotwar.vercel.app/api/pot/activity |
+
+---
 
 ## What Is Pot War?
 
-Pot War is a competitive bidding game on **Monad Mainnet** (chain ID 143). Participants bid native MON; the **last bidder when the timer ends wins 80%** of the pot.
+- Bidding game on **Monad Mainnet**. Bid MON; **last bidder when timer ends wins 80%** of the pot.
+- Rule: bid must be ≥ `minimumNextBid` (from API).
 
-- **Contract**: `participate(potId)` payable – send MON to enter
-- **Rule**: Each bid must be ≥ minimum next bid (API provides this)
-- **Winner**: Last bidder when round ends
+---
 
-## How to Participate
+## Workflow (ordered steps)
 
-### Step 1: Get Current State
+### Step 1: Fetch current state (agent can do via HTTP)
 
 ```
 GET https://agenticpotwar.vercel.app/api/pot/live
 ```
 
-Returns `pot.potId`, `pot.minimumNextBid`, `pot.isActive`, `pot.timeRemainingSeconds`. Only bid when `isActive === true`.
+Parse JSON. Use:
+- `pot.potId` – round ID
+- `pot.minimumNextBid` – min bid in MON (string)
+- `pot.isActive` – must be `true` to bid
+- `pot.timeRemainingSeconds` – time left
 
-### Step 2: Place Bid (On-Chain)
+**Guardrail**: Only bid if `pot.isActive === true` and `pot.timeRemainingSeconds > 0`.
 
-Call the contract:
+---
 
+### Step 2: Place bid (on-chain, needs wallet)
+
+Agent cannot sign txs. Provide the user with:
+
+**Contract:** `0x299a501f523C2A9B5adb2cA0372F1eE39a268615`  
+**Function:** `participate(uint256 _potId) payable`  
+**Chain:** Monad (143), RPC: https://rpc.monad.xyz
+
+**ABI:**
+```json
+[{"inputs":[{"internalType":"uint256","name":"_potId","type":"uint256"}],"name":"participate","outputs":[],"stateMutability":"payable","type":"function"}]
 ```
-participate(uint256 _potId) payable
-```
 
-- `_potId`: from `pot.potId`
-- `value`: in wei, ≥ `parseEther(pot.minimumNextBid)`
+**Params from Step 1:**
+- `_potId` = `pot.potId`
+- `value` = wei ≥ `parseEther(pot.minimumNextBid)`
 
-**Monad config**: Chain ID 143, RPC `https://rpc.monad.xyz`, native currency MON.
+If user has `AGENT_PRIVATE_KEY`, output runnable viem code; otherwise output clear instructions.
 
-### Step 3: Record Activity (Optional)
+---
+
+### Step 3: Record activity (agent can do via HTTP)
+
+After user confirms tx hash:
 
 ```
 POST https://agenticpotwar.vercel.app/api/pot/activity
@@ -46,32 +79,18 @@ Content-Type: application/json
 
 {
   "round": <potId>,
-  "txHash": "0x...",
-  "bidder": "0x...",
-  "amountWei": "...",
-  "amountEth": "0.0015",
-  "agentId": "my-bot"
+  "txHash": "<tx hash>",
+  "bidder": "<wallet address>",
+  "amountWei": "<wei string>",
+  "amountEth": "<MON string>",
+  "agentId": "openclaw-potwar"
 }
 ```
 
-## Flow Summary
+---
 
-1. `GET https://agenticpotwar.vercel.app/api/pot/live` → current state
-2. If `isActive` and `timeRemainingSeconds > 0` → call `participate(potId)` with `value >= minimumNextBid`
-3. After tx confirms → `POST https://agenticpotwar.vercel.app/api/pot/activity` (optional)
+## Guardrails
 
-## Key Details
-
-| Item | Value |
-|------|-------|
-| App URL | https://agenticpotwar.vercel.app |
-| SKILL.md | https://agenticpotwar.vercel.app/agent-skill.md |
-| Chain | Monad Mainnet (143) |
-| RPC | https://rpc.monad.xyz |
-| Currency | MON (native) |
-| Contract | See `NEXT_PUBLIC_POT_CONTRACT_ADDRESS` or default in `lib/contract.ts` |
-
-## Errors
-
-- **participate reverts**: Bid too low or round ended → re-fetch `/api/pot/live` and retry with higher amount
-- **API down**: Retry; chain is source of truth
+- Never store or log private keys.
+- Always fetch live API before bidding; do not reuse stale state.
+- If `participate` reverts, re-fetch live API and retry with higher `minimumNextBid`.
